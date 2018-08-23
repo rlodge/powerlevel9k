@@ -31,6 +31,21 @@ function +vi-git-aheadbehind() {
 
     branch_name=$(command git symbolic-ref --short HEAD 2>/dev/null)
 
+    local rootDir
+    rootDir=$(git rev-parse --show-toplevel 2>/dev/null)
+
+    if [ -f ${rootDir}/.git/FETCH_HEAD ]
+    then
+        age=$(expr $(date +%s) - $(date +%s -r ${rootDir}/.git/FETCH_HEAD))
+        if [ $age -gt 900 ]
+        then
+          () {
+            setopt LOCAL_OPTIONS NO_NOTIFY NO_MONITOR
+            nohup git remote update 1>/dev/null 2>&1 &
+          }
+        fi
+    fi
+
     # for git prior to 1.7
     # ahead=$(command git rev-list origin/${branch_name}..HEAD | wc -l)
     ahead=$(command git rev-list "${branch_name}"@{upstream}..HEAD 2>/dev/null | wc -l)
